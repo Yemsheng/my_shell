@@ -5,12 +5,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 int main(void)
 {
 	//char argv[10][10];
 	//memset(argv, 0, sizeof(argv));
-	char *argv[] = {"ls", NULL};
+	char *argv[] = {"ls","-l", "-R", NULL};
 	char *envp[] = {"PATH=/BIN:/usr/bin", "TERM=console", NULL};
 	extern char **environ;
 	
@@ -25,9 +27,18 @@ int main(void)
 	}
 	if(pid==0)
 	{
+		int fd;
 		printf("this is child running\n");
-		sleep(3);
+		sleep(1);
 		//execve(argv[0], argv, envp);
+		fd = open("file1", O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
+		if(fd<0)
+		{
+			perror("open\n");
+			exit(1);
+		}
+		dup2(fd, 1);
+		close(fd);
 		execvp(argv[0], argv);
 		perror("execvp error\n");
 		exit(1);
